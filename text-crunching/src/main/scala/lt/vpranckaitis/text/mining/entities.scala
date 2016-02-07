@@ -1,5 +1,5 @@
 package lt.vpranckaitis.text.mining
 
 object entities {
-  case class MoviePlot(name: String, plot: String)
+  case class Movie(name: String, plot: String)
 }

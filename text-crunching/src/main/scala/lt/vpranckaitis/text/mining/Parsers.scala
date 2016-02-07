@@ -1,6 +1,6 @@
 package lt.vpranckaitis.text.mining
 
-import lt.vpranckaitis.text.mining.entities.MoviePlot
+import lt.vpranckaitis.text.mining.entities.Movie
 import opennlp.tools.namefind.{NameFinderME, TokenNameFinderModel}
 import opennlp.tools.sentdetect.{SentenceDetector, SentenceDetectorME, SentenceModel}
 import opennlp.tools.tokenize.{Tokenizer, TokenizerME, TokenizerModel}
@@ -10,15 +10,15 @@ object Parsers {
   private lazy val sentModel = new SentenceModel(getClass.getResourceAsStream("/en-sent.bin"));
   private lazy val tokenModel = new TokenizerModel(getClass.getResourceAsStream("/en-token.bin"));
 
-  def textFileToMoviePlots(lines: Iterator[String]): Stream[MoviePlot] = {
+  def textFileToMoviePlots(lines: Iterator[String]): Stream[Movie] = {
     val (before, after) = lines span { !_.matches("^[-]+$") }
     val groupedByPrefix = before.toList filter { _.length > 3 } takeWhile { !_.startsWith("BY:") } groupBy { _ take 3 }
     val name = groupedByPrefix("MV:").head stripPrefix "MV: "
     val plot = groupedByPrefix("PL:") map { _ stripPrefix "PL: " } mkString " "
-    MoviePlot(name, plot) #:: textFileToMoviePlots(after drop 1)
+    Movie(name, plot) #:: textFileToMoviePlots(after drop 1)
   }
 
-  def textToCharacters(text: String) = {
+  def textToMovieCharacters(text: String) = {
     val sentenceDetector: SentenceDetector = new SentenceDetectorME(sentModel)
     val tokenizer: Tokenizer = new TokenizerME(tokenModel)
     val nameFinder = new NameFinderME(nerModel)
