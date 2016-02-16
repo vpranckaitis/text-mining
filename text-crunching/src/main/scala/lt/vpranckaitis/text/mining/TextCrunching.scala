@@ -1,8 +1,8 @@
 package lt.vpranckaitis.text.mining
 
-import scala.io.Source
-
 object TextCrunching extends App {
+
+  /*val count = 100
 
   val moviesFile = Source.fromFile("plot.list", "ISO-8859-1").getLines
 
@@ -10,7 +10,7 @@ object TextCrunching extends App {
 
   val time = System.currentTimeMillis()
 
-  val plots = Parsers.textFileToMovies(withoutHeader) take 5000 map Parsers.movieToPlot
+  val plots = Parsers.textFileToMovies(withoutHeader) take count map Parsers.movieToPlot
 
   def top10(x: Seq[(_, Int)]) = x.sortBy(_._2)(Ordering[Int].reverse) take 10
 
@@ -27,4 +27,10 @@ object TextCrunching extends App {
   println("---------------------")
 
   println(top10Characters mkString "\n")
+
+  val triplets = plots flatMap { x => Parsers.sentencesToTriplets(x.sentences) }
+
+  triplets.toList*/
+
+  Parsers.sentencesToTriplets(Seq("Meanwhile, Herr Flick is recovering in traction and Leclerc and Madame Fanny are going out for a walk."))
 }
