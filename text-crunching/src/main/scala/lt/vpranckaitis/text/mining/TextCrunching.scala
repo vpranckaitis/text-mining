@@ -1,7 +1,5 @@
 package lt.vpranckaitis.text.mining
 
-import lt.vpranckaitis.text.mining.Helpers._
-
 import scala.io.Source
 
 object TextCrunching extends App {
@@ -10,9 +8,23 @@ object TextCrunching extends App {
 
   val withoutHeader = moviesFile dropWhile { !_.matches("^MV:.*") }
 
-  val havingEnoughCharacters = Parsers.textFileToMoviePlots(withoutHeader) filter { x => x.characters.size >= 2 } take 5000
+  val time = System.currentTimeMillis()
 
-  val characterCounts = (havingEnoughCharacters flatMap { _.characters }).foldLeft(Map.empty[String, Int] withDefaultValue 0) { (acc, a) => acc + (a -> (acc(a) + 1)) }
+  val plots = Parsers.textFileToMovies(withoutHeader) take 5000 map Parsers.movieToPlot
 
-  println(characterCounts.toSeq.sortBy(_._2)(Ordering[Int].reverse) take 10 mkString "\n")
+  def top10(x: Seq[(_, Int)]) = x.sortBy(_._2)(Ordering[Int].reverse) take 10
+
+  val locations = plots flatMap { _.locations } groupBy { l => l } mapValues { _.size }
+  val top10Locations = top10(locations.toSeq)
+
+  val characters = plots flatMap { _.characters } groupBy { l => l } mapValues { _.size }
+  val top10Characters = top10(characters.toSeq)
+
+  println((System.currentTimeMillis() - time) * 0.001)
+
+  println(top10Locations mkString "\n")
+
+  println("---------------------")
+
+  println(top10Characters mkString "\n")
 }
