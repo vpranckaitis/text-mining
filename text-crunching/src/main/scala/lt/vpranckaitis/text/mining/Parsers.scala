@@ -128,7 +128,7 @@ object Parsers {
 
     val p = new Parse(sentence, new Span(0, sentence.length), AbstractBottomUpParser.INC_NODE, 1, 0)
 
-    val spans = tokenizer.tokenizePos(sentence)
+    val spans = tokenizer.tokenizePos(sentence) filter { s => sentence.substring(s.getStart, s.getEnd) != "\"" }
     val tokens = spans map { s => sentence.substring(s.getStart, s.getEnd) }
     val peopleSpans = findPeopleSpans(tokens) filter { s => s.getEnd - s.getStart > 1 }
 
@@ -162,10 +162,10 @@ object Parsers {
     for {
       sentence <- sentences
       parse = parser.parse(initialParse(sentence))
-      _ = println(sentence)
-      _ = parse.show
+      //_ = println(sentence)
+      //_ = parse.show
       triplet <- parseToTriplets(parse.getChildren.toList)
-      _ = println(triplet)
+      _ = { if (triplet.subject == "\"") { println(triplet + "\n" + sentence + "\n"); parse.show } }
     } yield triplet
   }
 }
