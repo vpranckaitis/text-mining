@@ -7,6 +7,7 @@ lazy val commonSettings = Seq(
 )
 
 val openNlp = "org.apache.opennlp" % "opennlp-tools" % "1.6.0"
+val sprayJson= "io.spray" %%  "spray-json" % "1.3.2"
 
 lazy val `text-mining` = project.in(file("."))
   .aggregate(`text-crunching`)
@@ -16,4 +17,4 @@ lazy val `text-mining` = project.in(file("."))
 lazy val `text-crunching` = project.in(file("text-crunching"))
   .settings(commonSettings: _*)
   .settings(name := "text-crunching")
-  .settings(libraryDependencies += openNlp)
+  .settings(libraryDependencies ++= Seq(openNlp, sprayJson))

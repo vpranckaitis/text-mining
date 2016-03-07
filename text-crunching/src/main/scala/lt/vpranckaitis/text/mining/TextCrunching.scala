@@ -1,13 +1,19 @@
 package lt.vpranckaitis.text.mining
 
+import java.io.{File, PrintWriter}
+
+import lt.vpranckaitis.text.mining.entities.Movie
 import opennlp.tools.stemmer.PorterStemmer
+import spray.json._
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration.Duration
 import scala.concurrent.{Await, Future}
 import scala.io.Source
 
-object TextCrunching extends App {
+object TextCrunching extends App with DefaultJsonProtocol {
+  implicit val MovieFormat = jsonFormat2(Movie)
+
   val count = 5000
 
   val moviesFile = Source.fromFile("plot.list", "ISO-8859-1").getLines
@@ -16,7 +22,13 @@ object TextCrunching extends App {
 
   val time = System.currentTimeMillis()
 
-  val plots = Parsers.textFileToMovies(withoutHeader) take count map Parsers.movieToPlot
+  val movies = Parsers.textFileToMovies(withoutHeader) take count
+
+  val writer = new PrintWriter(new File("movies.txt"))
+  writer.write(movies.toList.toJson.prettyPrint)
+  writer.close()
+
+  val plots = movies map Parsers.movieToPlot
 
   def top10(x: Seq[(String, Int)]): Seq[(String, Int)] = x.sortBy(_._2)(Ordering[Int].reverse) take 10
   def top10(x: Map[String, Int]): Seq[(String, Int)] = top10(x.toSeq)
