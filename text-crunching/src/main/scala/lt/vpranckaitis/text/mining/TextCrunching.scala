@@ -2,8 +2,8 @@ package lt.vpranckaitis.text.mining
 
 import java.io.{File, PrintWriter}
 
-import lt.vpranckaitis.text.mining.entities.Movie
-import opennlp.tools.stemmer.PorterStemmer
+import lt.vpranckaitis.text.mining.ExtendedJsonProtocol._
+import lt.vpranckaitis.text.mining.entities._
 import spray.json._
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -11,8 +11,7 @@ import scala.concurrent.duration.Duration
 import scala.concurrent.{Await, Future}
 import scala.io.Source
 
-object TextCrunching extends App with DefaultJsonProtocol {
-  implicit val MovieFormat = jsonFormat2(Movie)
+object TextCrunching extends App {
 
   val count = 5000
 
@@ -24,7 +23,7 @@ object TextCrunching extends App with DefaultJsonProtocol {
 
   val movies = Parsers.textFileToMovies(withoutHeader) take count
 
-  val writer = new PrintWriter(new File("movies.txt"))
+  val writer = new PrintWriter(new File("movies.json"))
   writer.write(movies.toList.toJson.prettyPrint)
   writer.close()
 
@@ -46,10 +45,15 @@ object TextCrunching extends App with DefaultJsonProtocol {
   val x = Future.sequence(tripletFutures.toList) // map { _ foreach { _ foreach println } }
   val triplets = Await.result(x, Duration.Inf).flatten
 
-  val stem: (String => String) = new PorterStemmer().stem
   val verbBaseForm: (String => String) = new MorphologyAnalyzer("./text-crunching/dict").getVerbBaseForm
 
-  val groupedByCharacter = triplets filter { t => top10Characters exists { _._1 == t.subject } } groupBy { _.subject } mapValues { ts =>
+  val popularCharacterTriplets =
+    triplets filter { t => top10Characters exists { c => (c._1 == t.subject) || (c._1 == t.`object`) } }
+
+  val popularCharacterTripletsWithReversions: List[TripletFields] =
+    popularCharacterTriplets ++ (popularCharacterTriplets map Triplet.reverse)
+
+  val groupedByCharacter = popularCharacterTripletsWithReversions  groupBy { _.subject } mapValues { ts =>
     val (tsPersonObject, tsNonPersonObject) = ts partition { t => characters contains t.`object` }
     val top10RelatedPeople = top10(tsPersonObject groupBy { _.`object` } mapValues { _.size })
     val top10Relations = top10(tsPersonObject groupBy { t => verbBaseForm(t.predicate) } mapValues { _.size })

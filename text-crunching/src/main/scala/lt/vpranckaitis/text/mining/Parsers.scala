@@ -168,4 +168,11 @@ object Parsers {
       _ = { if (triplet.subject == "\"") { println(triplet + "\n" + sentence + "\n"); parse.show } }
     } yield triplet
   }
+
+  def textToTokens(text: String) = {
+    val sentenceDetector = new SentenceDetectorME(sentenceModel)
+    val tokenizer = new TokenizerME(tokenModel)
+
+    sentenceDetector.sentDetect(text) flatMap { tokenizer.tokenize(_) }
+  }
 }
