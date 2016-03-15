@@ -16,11 +16,9 @@ object Learning extends App {
 
   val dataSet = movies.grouped(5).toList map { _.head }
 
-  val stemmer = new PorterStemmer()
-
   val movieTokens = dataSet map { m =>
     val tokens = Parsers.textToTokens(m.description)
-    tokens withFilter { x => !(x matches "[\\d\\W]+") && x.length > 3 } map { x => stemmer.stem(x.toLowerCase) }
+    Common.processTokens(tokens)
   }
 
   val wordToId = movieTokens.flatten.toSeq.distinct.zipWithIndex.toMap
@@ -28,11 +26,7 @@ object Learning extends App {
 
   val dimensionality = wordToId.size
 
-  val documents = dataSet zip movieTokens map { case (movie, tokens) =>
-    val bagOfWords = tokens groupBy { x => x } map { case (key, value) => (wordToId(key), value.size.toDouble) }
-    val (indexes, values) = bagOfWords.toSeq.sortBy(_._1).unzip
-    new Document(indexes, values, dimensionality, movie)
-  }
+  val documents = Common.tokensToDocuments(dataSet zip movieTokens, wordToId)
 
   val clusters = new Clusterer(dimensionality, documents.toSeq).run()
 
